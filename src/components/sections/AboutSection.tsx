@@ -1,6 +1,6 @@
 import { FC, useRef, useState } from 'react';
-import { personalData } from '../../data/personalData';
 import { Modal, AboutDetailContent } from '../../components/common/Modal';
+import { personalData } from '@/data/personalData';
 
 export const AboutSection: FC = () => {
   const [showModal, setShowModal] = useState(false);

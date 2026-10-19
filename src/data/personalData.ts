@@ -25,5 +25,5 @@ export const personalData: PersonalInfo = {
     'Database',
     'Design Patterns',
   ],
-  profileImage: '/src/assets/images/profile.webp',
+  profileImage: '/assets/images/profile.webp',
 };

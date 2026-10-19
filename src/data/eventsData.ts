@@ -4,14 +4,14 @@ export const eventHighlights: EventHighlight[] = [
   {
     id: 'event-1',
     title: 'Unikom Codelabs',
-    image: '/src/assets/images/events/event-1.webp',
+    image: '/assets/images/events/event-1.webp',
     date: '2026',
     description: 'Community event highlights',
   },
   {
     id: 'event-2',
     title: 'COMPFEST 18',
-    image: '/src/assets/images/events/event-2.webp',
+    image: '/assets/images/events/event-2.webp',
     date: '2026',
     description: 'Program event highlights',
   },
