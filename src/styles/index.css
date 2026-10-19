@@ -109,6 +109,25 @@
     @apply opacity-100 translate-y-0;
   }
 
+  /* Event Highlights: saat transisi horizontal dari Experience, slide sementara melayang */
+  .slide.floating {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 40;
+    box-shadow: -24px 0 48px -24px rgba(15, 23, 42, 0.35);
+    will-change: transform;
+  }
+  .slide.floating[data-x='right'] { transform: translate3d(100%, 0, 0); }
+  .slide.floating[data-x='center'] { transform: none; }
+  .slide.floating.animate {
+    transition: transform 800ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .slide.floating .reveal {
+    @apply opacity-100 translate-y-0;
+  }
+
   .vwrap {
     @apply relative overflow-hidden;
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
@@ -292,7 +311,7 @@
 
   /* Gallery */
   .gallery {
-    @apply relative flex overflow-x-auto snap-x snap-mandatory snap-always scrollbar-hide overscroll-x-contain h-[min(54svh,34rem)];
+    @apply relative flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory snap-always scrollbar-hide overscroll-x-contain h-[min(54svh,34rem)];
   }
 
   .gallery figure {
