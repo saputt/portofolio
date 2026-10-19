@@ -109,23 +109,89 @@
     @apply opacity-100 translate-y-0;
   }
 
-  /* Event Highlights: saat transisi horizontal dari Experience, slide sementara melayang */
+  /* Event Highlights: transisi "wipe" dengan tepi chevron (tanpa shadow).
+     Slide melayang (position: fixed) lalu dibuka lewat clip-path. Tepi kirinya
+     berbentuk panah "<" yang menyapu dari kanan ke kiri. Isi slide ikut
+     bergeser tipis (parallax) supaya terasa seperti swipe, bukan sekadar potongan. */
   .slide.floating {
+    --edge: clamp(4rem, 14vw, 13rem); /* seberapa runcing ujung panah */
+    --slide-ms: 900ms;                /* samakan dengan SLIDE_MS di App.tsx */
+    --slide-ease: cubic-bezier(0.76, 0, 0.24, 1);
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 40;
-    box-shadow: -24px 0 48px -24px rgba(15, 23, 42, 0.35);
-    will-change: transform;
+    will-change: clip-path;
   }
-  .slide.floating[data-x='right'] { transform: translate3d(100%, 0, 0); }
-  .slide.floating[data-x='center'] { transform: none; }
+  .slide.floating[data-x='right'] {
+    clip-path: polygon(
+      calc(100% + var(--edge)) 0%,
+      100% 0%,
+      100% 100%,
+      calc(100% + var(--edge)) 100%,
+      100% 50%
+    );
+  }
+  .slide.floating[data-x='center'] {
+    clip-path: polygon(
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      0% 100%,
+      calc(var(--edge) * -1) 50%
+    );
+  }
   .slide.floating.animate {
-    transition: transform 800ms cubic-bezier(0.65, 0, 0.35, 1);
+    transition: clip-path var(--slide-ms) var(--slide-ease);
   }
   .slide.floating .reveal {
     @apply opacity-100 translate-y-0;
+  }
+  .slide.floating > .wrap {
+    will-change: transform;
+  }
+  .slide.floating[data-x='right'] > .wrap {
+    transform: translate3d(8vw, 0, 0);
+  }
+  .slide.floating[data-x='center'] > .wrap {
+    transform: none;
+  }
+  .slide.floating.animate > .wrap {
+    transition: transform var(--slide-ms) var(--slide-ease);
+  }
+
+  /* Hero <-> About: About naik dari bawah menimpa Hero.
+     Pakai variabel --slide-ms & --slide-ease yang sama dengan transisi Event. */
+  .slide.floating[data-y] {
+    will-change: transform;
+    box-shadow: 0 -28px 56px -28px rgba(15, 23, 42, 0.45);
+  }
+  .slide.floating[data-y='bottom'] { transform: translate3d(0, 100%, 0); }
+  .slide.floating[data-y='center'] { transform: none; }
+  .slide.floating[data-y].animate {
+    transition: transform var(--slide-ms) var(--slide-ease);
+  }
+
+  /* Hero di belakang: bergeser tipis ke atas & meredup saat tertimpa About */
+  .slide.under-anim {
+    --slide-ms: 900ms;
+    --slide-ease: cubic-bezier(0.76, 0, 0.24, 1);
+    transition: transform var(--slide-ms) var(--slide-ease),
+                filter var(--slide-ms) var(--slide-ease);
+    will-change: transform, filter;
+  }
+  .slide.under {
+    transform: translate3d(0, -14%, 0);
+    filter: brightness(0.7);
+  }
+
+  /* Slide Experience di belakang ikut mundur sedikit saat Event menyapu masuk */
+  .slide.pushed > .wrap {
+    transform: translate3d(-6vw, 0, 0);
+  }
+  .slide.pushing > .wrap {
+    transition: transform 900ms cubic-bezier(0.76, 0, 0.24, 1);
   }
 
   .vwrap {
@@ -349,6 +415,18 @@
 
   .gallery figcaption b {
     @apply block text-ink dark:text-white font-semibold;
+  }
+
+  /* Gallery di atas background biru (Event Highlights) */
+  .bg-blue .gallery img {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 18px 38px -22px rgba(15, 23, 42, 0.6);
+  }
+  .bg-blue .gallery figcaption {
+    @apply text-white/80;
+  }
+  .bg-blue .gallery figcaption b {
+    @apply text-white;
   }
 
   /* Navigation Dots */

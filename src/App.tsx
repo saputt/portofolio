@@ -8,9 +8,9 @@ import { EventHighlightsSection } from './components/sections/EventHighlightsSec
 import { ProjectsSection } from './components/sections/ProjectsSection';
 import { ContactSection } from './components/sections/ContactSection';
 
-const SLIDE_MS = 800; // samakan dengan durasi transform di .slide.floating.animate (CSS)
+const SLIDE_MS = 900; // samakan dengan --slide-ms di .slide.floating (CSS)
 
-type Intent = 'open' | 'close' | 'block';
+type Intent = 'open' | 'close' | 'aboutOpen' | 'aboutClose' | 'block';
 
 export default function App() {
   const snapRef = useRef<HTMLDivElement>(null);
@@ -18,6 +18,7 @@ export default function App() {
   const lastWheel = useRef(0);
   const lastInput = useRef(0); // kapan terakhir user menggerakkan wheel/sentuh/keyboard
   const needFresh = useRef(false); // buang sisa momentum sampai ada gesture baru
+  const pastHero = useRef(false); // true = posisi diam terakhir sudah lewat Hero (di About atau setelahnya)
   const below = useRef(false); // true = posisi diam terakhir ada di Event atau setelahnya
 
   /* ---------- observer lama (tidak diubah) ---------- */
@@ -51,16 +52,20 @@ export default function App() {
     };
   }, []);
 
-  /* ---------- Experience <-> Event Highlights: geser horizontal ----------
-     Event tetap slide biasa di alur scroll. Hanya saat pindah dari/ke Experience,
-     slide Event sementara "melayang" (position: fixed), digeser, lalu dikembalikan
-     ke alur scroll. Event -> Projects tetap scroll vertikal normal. */
+  /* ---------- Transisi antar-slide ----------
+     1. Hero <-> About: About "melayang" (position: fixed) lalu naik dari bawah
+        menimpa Hero. Hero di belakangnya ikut bergeser tipis ke atas & meredup.
+     2. Experience <-> Event Highlights: Event menyapu dari kanan (chevron wipe).
+     Slide tetap berada di alur scroll biasa; hanya saat transisi ia dilepas sementara,
+     lalu dikembalikan dan scroll disejajarkan ke slide tersebut. */
   useEffect(() => {
     const snap = snapRef.current;
     if (!snap) return;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    const heroSlide = () => snap.querySelector<HTMLElement>('[data-t="Hello"]');
+    const aboutSlide = () => snap.querySelector<HTMLElement>('[data-t="About"]');
     const eventSlide = () => snap.querySelector<HTMLElement>('[data-t="Highlights"]');
     const lastExperience = () => {
       const ev = eventSlide();
@@ -104,31 +109,106 @@ export default function App() {
     const updateBelow = () => {
       const g = gateTop();
       if (g !== null) below.current = snap.scrollTop > g + 8;
+      const h = heroSlide();
+      if (h) pastHero.current = snap.scrollTop > h.offsetHeight - 8;
     };
     updateBelow();
 
     const intent = (down: boolean): Intent | null => {
       if (reduceMotion) return null;
       if (Date.now() < lockUntil.current) return 'block';
+      if (down && isAligned(heroSlide())) return 'aboutOpen';
+      const ab = aboutSlide();
+      // About punya scroll internal (di layar kecil): jangan tutup sebelum isinya mentok di atas
+      if (!down && isAligned(ab) && ab && ab.scrollTop <= 0) return 'aboutClose';
       if (down && isAligned(lastExperience())) return 'open';
       if (!down && isAligned(eventSlide())) return 'close';
       return null;
     };
 
+    /* ----- Hero <-> About: About naik dari bawah menimpa Hero ----- */
+    const openAbout = () => {
+      const hero = heroSlide();
+      const ab = aboutSlide();
+      if (!hero || !ab) return;
+
+      // 1. About lepas dari alur scroll, taruh di bawah layar
+      ab.classList.remove('animate');
+      ab.classList.add('floating');
+      ab.dataset.y = 'bottom';
+      void ab.offsetWidth; // paksa browser menerapkan posisi awal
+
+      // 2. About naik menutupi layar; Hero di belakang bergeser tipis & meredup
+      ab.classList.add('animate');
+      ab.dataset.y = 'center';
+      hero.classList.add('under-anim', 'under');
+      // warna dots/navbar ikut berganti saat About sudah menutupi separuh layar
+      window.setTimeout(() => document.body.classList.remove('dk'), SLIDE_MS * 0.45);
+
+      // 3. kembalikan ke alur scroll & sejajarkan scroll ke About
+      window.setTimeout(() => {
+        ab.classList.add('on');
+        ab.classList.remove('floating', 'animate');
+        delete ab.dataset.y;
+        hero.classList.remove('under-anim', 'under'); // sudah di luar layar, aman direset
+        jumpTo(ab);
+        pastHero.current = true;
+      }, SLIDE_MS + 30);
+    };
+
+    const closeAbout = () => {
+      const hero = heroSlide();
+      const ab = aboutSlide();
+      if (!hero || !ab) return;
+
+      // 1. About melayang menutupi layar, scroll di belakangnya pindah ke Hero
+      //    (Hero mulai dalam posisi "tertimpa" tanpa transisi, lalu kembali ke tengah)
+      ab.classList.remove('animate');
+      ab.classList.add('floating');
+      ab.dataset.y = 'center';
+      hero.classList.remove('under-anim');
+      hero.classList.add('under');
+      jumpTo(hero);
+      pastHero.current = false;
+      void ab.offsetWidth;
+      hero.classList.add('under-anim');
+      void hero.offsetWidth;
+
+      // 2. About turun keluar; Hero kembali ke posisi semula
+      ab.classList.add('animate');
+      ab.dataset.y = 'bottom';
+      hero.classList.remove('under');
+      window.setTimeout(
+        () => document.body.classList.toggle('dk', hero.dataset.dk === '1'),
+        SLIDE_MS * 0.45
+      );
+
+      // 3. kembalikan About ke alur scroll (posisinya di bawah Hero)
+      window.setTimeout(() => {
+        ab.classList.remove('floating', 'animate');
+        delete ab.dataset.y;
+        hero.classList.remove('under-anim');
+      }, SLIDE_MS + 30);
+    };
+
+    /* ----- Experience <-> Event: sapuan chevron dari kanan ----- */
     const openEvent = () => {
       const ev = eventSlide();
+      const exp = lastExperience();
       if (!ev) return;
-      document.body.classList.remove('dk');
 
-      // 1. lepas dari alur scroll, taruh di kanan layar
+      // 1. lepas dari alur scroll, siapkan posisi awal (clip menutup di sisi kanan)
       ev.classList.remove('animate');
       ev.classList.add('floating');
       ev.dataset.x = 'right';
       void ev.offsetWidth; // paksa browser menerapkan posisi awal
 
-      // 2. geser masuk ke tengah
+      // 2. sapu masuk ke tengah; slide Experience mundur tipis di belakangnya
       ev.classList.add('animate');
       ev.dataset.x = 'center';
+      exp?.classList.add('pushing', 'pushed');
+      // warna dots ikut berganti saat tepi chevron sudah melewati separuh layar
+      window.setTimeout(() => document.body.classList.add('dk'), SLIDE_MS * 0.45);
 
       // 3. setelah selesai: kembalikan ke alur scroll & sejajarkan scroll ke slide ini
       window.setTimeout(() => {
@@ -137,6 +217,7 @@ export default function App() {
         delete ev.dataset.x;
         jumpTo(ev);
         below.current = true;
+        exp?.classList.remove('pushing', 'pushed'); // sudah di luar layar, aman direset
       }, SLIDE_MS + 30);
     };
 
@@ -149,26 +230,38 @@ export default function App() {
       ev.classList.remove('animate');
       ev.classList.add('floating');
       ev.dataset.x = 'center';
+      // Experience mulai dalam posisi "mundur" lalu kembali ke tengah (tanpa transisi di awal)
+      exp.classList.remove('pushing');
+      exp.classList.add('pushed');
       jumpTo(exp);
       below.current = false;
-      document.body.classList.toggle('dk', exp.dataset.dk === '1');
       void ev.offsetWidth;
+      exp.classList.add('pushing');
+      void exp.offsetWidth;
 
-      // 2. geser keluar ke kanan
+      // 2. tarik Event keluar ke kanan (sapuan chevron terbalik)
       ev.classList.add('animate');
       ev.dataset.x = 'right';
+      exp.classList.remove('pushed');
+      window.setTimeout(
+        () => document.body.classList.toggle('dk', exp.dataset.dk === '1'),
+        SLIDE_MS * 0.45
+      );
 
       // 3. kembalikan ke alur scroll (posisinya di bawah Experience)
       window.setTimeout(() => {
         ev.classList.remove('floating', 'animate');
         delete ev.dataset.x;
+        exp.classList.remove('pushing');
       }, SLIDE_MS + 30);
     };
 
     const run = (i: Intent) => {
       if (i === 'block') return;
       lock();
-      if (i === 'open') openEvent();
+      if (i === 'aboutOpen') openAbout();
+      else if (i === 'aboutClose') closeAbout();
+      else if (i === 'open') openEvent();
       else closeEvent();
     };
 
@@ -229,9 +322,9 @@ export default function App() {
       if (i) run(i);
     };
 
-    // Scroll cepat / fling bisa melewati titik rata slide Experience terakhir.
-    // Kalau user (bukan klik titik navigasi) kelewat dari atas, tarik balik ke Experience
-    // lalu mainkan geseran horizontal. Kalau kelewat naik dari bawah, berhenti di Event.
+    // Scroll cepat / fling bisa melewati titik rata slide (Hero atau Experience terakhir).
+    // Kalau user (bukan klik titik navigasi) kelewat dari atas, tarik balik ke slide pemicu
+    // lalu mainkan transisinya. Kalau kelewat naik dari bawah, berhenti di slide tujuan.
     let prevTop = snap.scrollTop;
     let settleTimer = 0;
     const onScroll = () => {
@@ -245,6 +338,25 @@ export default function App() {
       if (reduceMotion || Date.now() < lockUntil.current) return;
       if (Date.now() - lastInput.current > 1500) return; // scroll programatik (klik titik nav), biarkan
 
+      // --- Hero -> About ---
+      const hero = heroSlide();
+      if (hero) {
+        const aboutTop = hero.offsetHeight;
+        if (!pastHero.current && down && top > 8 && top < aboutTop - 8) {
+          snap.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+          run('aboutOpen');
+          pinTo(0);
+          return;
+        }
+        if (pastHero.current && !down && top > 8 && top < aboutTop - 8) {
+          snap.scrollTo({ top: aboutTop, behavior: 'instant' as ScrollBehavior });
+          lock();
+          pinTo(aboutTop);
+          return;
+        }
+      }
+
+      // --- Experience -> Event ---
       const g = gateTop();
       const exp = lastExperience();
       if (g === null || !exp) return;

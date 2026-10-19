@@ -44,15 +44,15 @@ export const EventHighlightsSection: FC = () => {
   }, [updateCarouselState]);
 
   return (
-    <section className="slide bg-mist" data-t="Highlights">
+    <section className="slide bg-blue" data-t="Highlights" data-dk="1">
       <div className="wrap">
         <div className="reveal flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
           <h2 className="dsp text-section-mobile sm:text-section-desktop">Event highlights</h2>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-xs">
+          <p className="text-sm sm:text-base text-white/85 max-w-xs">
             Activity photos from programs and community events.{' '}
             <span id="galh" style={{ display: isCarousel ? '' : 'none' }}>
               Swipe to browse{' '}
-              <b id="galc" className="text-ink">
+              <b id="galc" className="text-white">
                 {currentIndex + 1} / {eventHighlights.length}
               </b>
             </span>
