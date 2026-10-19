@@ -1,92 +1,108 @@
-import { FC, useRef, useState } from 'react';
-import { Modal, AboutDetailContent } from '../../components/common/Modal';
+import { FC } from 'react';
 import { personalData } from '@/data/personalData';
 
+const CapIcon: FC = () => (
+  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2 9l10-5 10 5-10 5-10-5z" />
+    <path d="M6 11.5V16c0 1.4 2.7 3 6 3s6-1.6 6-3v-4.5" />
+    <path d="M22 9v6" />
+  </svg>
+);
+
+const CodeIcon: FC = () => (
+  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="16" rx="3" />
+    <path d="M10 9l-3 3 3 3M14 9l3 3-3 3" />
+  </svg>
+);
+
+/* delay bertahap supaya elemen masuk satu per satu (komponen .reveal sudah punya transisi) */
+const stagger = (ms: number) => ({ transitionDelay: `${ms}ms` });
+
 export const AboutSection: FC = () => {
-  const [showModal, setShowModal] = useState(false);
-  const aboutMoreRef = useRef<HTMLButtonElement>(null);
+  const { name, role, bio, profileImage, education, coursework } = personalData;
 
   return (
     <section className="slide bg-light scrollable" data-t="About">
-      <div className="wrap about-grid">
-        <h2 className="hd reveal dsp md:hidden text-center text-heading-mobile sm:text-heading-desktop">
-          About me
-        </h2>
-        <div className="ph reveal">
-          <div className="profile-frame">
+      <div className="wrap grid gap-4 md:grid-cols-[0.75fr_1.25fr] md:gap-14 items-center">
+        {/* ---------- Kartu profil ---------- */}
+        <aside
+          className="reveal order-2 md:order-1 flex md:flex-col items-center md:items-stretch gap-4 md:gap-5 p-3 md:p-4 rounded-2xl md:rounded-[1.75rem] bg-white md:max-w-sm"
+          style={stagger(80)}
+        >
+          <img
+            src={profileImage}
+            alt={name}
+            className="h-24 w-20 md:h-[42svh] md:w-full flex-none rounded-xl md:rounded-[1.25rem] object-cover bg-gray-200"
+            onError={(e) => {
+              e.currentTarget.src = 'https://via.placeholder.com/400x500/2563EB/FFFFFF?text=Profile';
+            }}
+          />
+        </aside>
+
+        {/* ---------- Sisi kanan: judul, satu kalimat, dua kartu ---------- */}
+        <div className="contents md:flex md:flex-col md:order-2 md:gap-6">
+          <div className="reveal order-1 md:order-none flex items-center gap-4" style={stagger(0)}>
+            <h2 className="dsp text-heading-mobile sm:text-section-desktop lg:text-section-large">
+              About <span className="text-royal">me.</span>
+            </h2>
             <img
-              src={personalData.profileImage}
-              alt={personalData.name}
-              onError={(e) => {
-                e.currentTarget.src = 'https://via.placeholder.com/400x500/2563EB/FFFFFF?text=Profile';
-              }}
+              src={profileImage}
+              alt=""
+              aria-hidden="true"
+              className="hidden md:block h-12 lg:h-16 w-28 lg:w-36 rounded-full object-cover border-[3px] border-ink"
             />
           </div>
-        </div>
-        <p className="bio reveal text-lg sm:text-2xl font-bold max-w-xs text-center md:text-left mx-auto md:mx-0 tracking-tight leading-snug">
-          {personalData.bio}
-        </p>
-        <div className="sm reveal md:hidden text-center">
-          <p className="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 max-w-prose mx-auto">
-            {personalData.fullBio}
-          </p>
-          <button
-            ref={aboutMoreRef}
-            type="button"
-            className="btn-more mt-5"
-            onClick={() => setShowModal(true)}
-          >
-            Baca selengkapnya
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </button>
-        </div>
-        <div className="dt reveal hidden md:block" id="aboutFull">
-          <h2 className="dsp text-section-mobile sm:text-section-desktop lg:text-section-large">About me</h2>
-          <p className="mt-3 sm:mt-5 text-[14px] sm:text-lg leading-relaxed max-w-prose">
-            {personalData.fullBio}
-          </p>
-          <div className="line mt-4 sm:mt-6 pt-3 sm:pt-4">
-            <p className="text-sm font-semibold text-royal">Education</p>
-            <h3 className="dsp mt-1 text-xl sm:text-4xl leading-tight">
-              {personalData.education.institution}
-            </h3>
-            <p className="mt-1 text-sm sm:text-base font-medium">
-              {personalData.education.degree}
-            </p>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              {personalData.education.period}
-            </p>
-          </div>
-          <div className="line mt-3 sm:mt-5 pt-3 sm:pt-4">
-            <p className="text-sm font-semibold text-royal">Relevant coursework</p>
-            <ul className="mt-2 flex flex-wrap gap-1.5">
-              {personalData.coursework.map((course) => (
-                <li key={course} className="chip">
-                  {course}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
 
-        <Modal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          title="About me"
-          content={<AboutDetailContent />}
-        />
+          <p
+            className="reveal order-3 md:order-none text-base sm:text-xl text-slate-600 max-w-md"
+            style={stagger(160)}
+          >
+            {bio}
+          </p>
+
+          <div className="order-4 md:order-none grid grid-cols-2 gap-3 md:gap-5">
+            <article
+              className="reveal flex flex-col justify-between min-h-[10.5rem] md:min-h-[15rem] p-4 md:p-6 rounded-2xl md:rounded-3xl bg-royal text-white"
+              style={stagger(240)}
+            >
+              <CapIcon />
+              <div className="mt-4">
+                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-white/70">
+                  Education
+                </p>
+                <h3 className="dsp mt-1 text-[15px] sm:text-xl md:text-2xl leading-tight">
+                  {education.institution}
+                </h3>
+                <p className="mt-2 text-xs md:text-sm text-white/85">
+                  {education.period.split(',')[0]}
+                </p>
+              </div>
+            </article>
+
+            <article
+              className="reveal flex flex-col justify-between min-h-[10.5rem] md:min-h-[15rem] p-4 md:p-6 rounded-2xl md:rounded-3xl bg-ink text-white"
+              style={stagger(320)}
+            >
+              <CodeIcon />
+              <div className="mt-4">
+                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-white/70">
+                  Coursework
+                </p>
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {coursework.slice(0, 4).map((course) => (
+                    <li
+                      key={course}
+                      className="px-2 py-0.5 md:px-3 md:py-1 rounded-full border border-white/40 text-[10px] sm:text-xs font-semibold uppercase tracking-wide"
+                    >
+                      {course}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
       </div>
     </section>
   );
