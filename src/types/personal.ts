@@ -11,5 +11,6 @@ export interface PersonalInfo {
     period: string;
   };
   coursework: string[];
+  traits: string[];
   profileImage: string;
 }

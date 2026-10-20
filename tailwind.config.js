@@ -40,11 +40,16 @@ export default {
       animation: {
         'up': 'up 36s linear infinite',
         'down': 'down 42s linear infinite',
+        'marquee': 'marquee 28s linear infinite',
       },
       keyframes: {
         up: {
           '0%': { transform: 'translate3d(0, 0, 0)' },
           '100%': { transform: 'translate3d(0, -50%, 0)' },
+        },
+        marquee: {
+          '0%': { transform: 'translate3d(0, 0, 0)' },
+          '100%': { transform: 'translate3d(-50%, 0, 0)' },
         },
         down: {
           '0%': { transform: 'translate3d(0, -50%, 0)' },

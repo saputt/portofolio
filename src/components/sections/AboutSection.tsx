@@ -1,107 +1,80 @@
 import { FC } from 'react';
 import { personalData } from '@/data/personalData';
 
-const CapIcon: FC = () => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M2 9l10-5 10 5-10 5-10-5z" />
-    <path d="M6 11.5V16c0 1.4 2.7 3 6 3s6-1.6 6-3v-4.5" />
-    <path d="M22 9v6" />
+/* Kata-kata carousel (dummy, silakan diganti) */
+const MARQUEE_ITEMS = [
+  'Full-Stack Developer',
+  'Backend Engineer',
+  'Web Development',
+  'Clean Code',
+  'Microservices',
+];
+
+const ArrowIcon: FC = () => (
+  <svg viewBox="0 0 100 100" className="w-14 sm:w-24 md:w-40 lg:w-52 flex-none text-white/30" aria-hidden="true">
+    <path d="M18 82 L72 28 M30 22 H78 V70" fill="none" stroke="currentColor" strokeWidth="13" strokeLinecap="butt" strokeLinejoin="miter" />
   </svg>
 );
 
-const CodeIcon: FC = () => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="16" rx="3" />
-    <path d="M10 9l-3 3 3 3M14 9l3 3-3 3" />
-  </svg>
+const Dot: FC = () => (
+  <span className="mx-5 md:mx-8 flex-none text-royal" aria-hidden="true">•</span>
 );
 
-/* delay bertahap supaya elemen masuk satu per satu (komponen .reveal sudah punya transisi) */
-const stagger = (ms: number) => ({ transitionDelay: `${ms}ms` });
-
+/*
+  About = 1 layar penuh (h-[100svh] dari .slide), flex-col justify-between:
+  - blok teks berada di tengah area atas
+  - carousel menempel di dasar section, dan HANYA bagian dari section ini.
+  .slide sudah overflow-hidden, jadi carousel ikut tertutup saat section Tech stack
+  (relative z-10, background solid) menggantikan layar.
+*/
 export const AboutSection: FC = () => {
-  const { name, role, bio, profileImage, education, coursework } = personalData;
+  const { fullBio, education, role } = personalData;
+
+  // satu belahan = daftar kata diulang 2x (cukup lebar untuk layar besar);
+  // dua belahan identik + translateX(-50%) = loop mulus tanpa jeda kosong
+  const half = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+
+  const renderHalf = (key: string) => (
+    <div key={key} className="flex flex-none items-center">
+      {half.map((t, i) => (
+        <div key={`${key}-${i}`} className="flex flex-none items-center">
+          <span className="dsp uppercase whitespace-nowrap text-[clamp(1.1rem,2.6vw,2.4rem)] leading-none">{t}</span>
+          <Dot />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
-    <section className="slide bg-light scrollable" data-t="About">
-      <div className="wrap grid gap-4 md:grid-cols-[0.75fr_1.25fr] md:gap-14 items-center">
-        {/* ---------- Kartu profil ---------- */}
-        <aside
-          className="reveal order-2 md:order-1 flex md:flex-col items-center md:items-stretch gap-4 md:gap-5 p-3 md:p-4 rounded-2xl md:rounded-[1.75rem] bg-white md:max-w-sm"
-          style={stagger(80)}
-        >
-          <img
-            src={profileImage}
-            alt={name}
-            className="h-24 w-20 md:h-[42svh] md:w-full flex-none rounded-xl md:rounded-[1.25rem] object-cover bg-gray-200"
-            onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/400x500/2563EB/FFFFFF?text=Profile';
-            }}
-          />
-        </aside>
+    <section className="slide bg-blue flex-col items-stretch justify-between" data-t="About" data-dk="1">
+      <div className="flex flex-1 items-center min-h-0">
+        <div className="wrap flex flex-col gap-6 md:gap-8">
+          <h2 className="reveal dsp uppercase leading-[0.85] tracking-tighter text-white text-[clamp(3.5rem,min(18vw,17svh),11rem)]">
+            /About
+          </h2>
 
-        {/* ---------- Sisi kanan: judul, satu kalimat, dua kartu ---------- */}
-        <div className="contents md:flex md:flex-col md:order-2 md:gap-6">
-          <div className="reveal order-1 md:order-none flex items-center gap-4" style={stagger(0)}>
-            <h2 className="dsp text-heading-mobile sm:text-section-desktop lg:text-section-large">
-              About <span className="text-royal">me.</span>
-            </h2>
-            <img
-              src={profileImage}
-              alt=""
-              aria-hidden="true"
-              className="hidden md:block h-12 lg:h-16 w-28 lg:w-36 rounded-full object-cover border-[3px] border-ink"
-            />
+          <div className="reveal flex items-end gap-4 md:gap-12" style={{ transitionDelay: '120ms' }}>
+            <ArrowIcon />
+            <div className="max-w-xl md:max-w-3xl xl:max-w-4xl">
+              <p className="text-[13px] sm:text-base md:text-xl lg:text-2xl xl:text-3xl leading-relaxed md:leading-snug text-white/90">
+                {fullBio}
+              </p>
+              <p className="mt-4 md:mt-6 text-[10px] md:text-sm lg:text-base font-bold uppercase tracking-wider text-white/75">
+                {role} · Studying {education.field} at {education.institution}
+              </p>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <p
-            className="reveal order-3 md:order-none text-base sm:text-xl text-slate-600 max-w-md"
-            style={stagger(160)}
-          >
-            {bio}
-          </p>
-
-          <div className="order-4 md:order-none grid grid-cols-2 gap-3 md:gap-5">
-            <article
-              className="reveal flex flex-col justify-between min-h-[10.5rem] md:min-h-[15rem] p-4 md:p-6 rounded-2xl md:rounded-3xl bg-royal text-white"
-              style={stagger(240)}
-            >
-              <CapIcon />
-              <div className="mt-4">
-                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-white/70">
-                  Education
-                </p>
-                <h3 className="dsp mt-1 text-[15px] sm:text-xl md:text-2xl leading-tight">
-                  {education.institution}
-                </h3>
-                <p className="mt-2 text-xs md:text-sm text-white/85">
-                  {education.period.split(',')[0]}
-                </p>
-              </div>
-            </article>
-
-            <article
-              className="reveal flex flex-col justify-between min-h-[10.5rem] md:min-h-[15rem] p-4 md:p-6 rounded-2xl md:rounded-3xl bg-ink text-white"
-              style={stagger(320)}
-            >
-              <CodeIcon />
-              <div className="mt-4">
-                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-white/70">
-                  Coursework
-                </p>
-                <ul className="mt-2 flex flex-wrap gap-1.5">
-                  {coursework.slice(0, 4).map((course) => (
-                    <li
-                      key={course}
-                      className="px-2 py-0.5 md:px-3 md:py-1 rounded-full border border-white/40 text-[10px] sm:text-xs font-semibold uppercase tracking-wide"
-                    >
-                      {course}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          </div>
+      <div
+        className="w-full flex-none overflow-hidden whitespace-nowrap py-3 md:py-5"
+        style={{ backgroundColor: '#ffffff', color: '#2563EB' }}
+        aria-label={MARQUEE_ITEMS.join(', ')}
+      >
+        <div className="about-marquee-track flex w-max items-center" aria-hidden="true">
+          {renderHalf('a')}
+          {renderHalf('b')}
         </div>
       </div>
     </section>

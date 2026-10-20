@@ -115,7 +115,7 @@
      bergeser tipis (parallax) supaya terasa seperti swipe, bukan sekadar potongan. */
   .slide.floating {
     --edge: clamp(4rem, 14vw, 13rem); /* seberapa runcing ujung panah */
-    --slide-ms: 900ms;                /* samakan dengan SLIDE_MS di App.tsx */
+    --slide-ms: 1300ms;               /* samakan dengan SLIDE_MS di App.tsx */
     --slide-ease: cubic-bezier(0.76, 0, 0.24, 1);
     position: fixed;
     top: 0;
@@ -175,7 +175,7 @@
 
   /* Hero di belakang: bergeser tipis ke atas & meredup saat tertimpa About */
   .slide.under-anim {
-    --slide-ms: 900ms;
+    --slide-ms: 1300ms;
     --slide-ease: cubic-bezier(0.76, 0, 0.24, 1);
     transition: transform var(--slide-ms) var(--slide-ease),
                 filter var(--slide-ms) var(--slide-ease);
@@ -191,7 +191,7 @@
     transform: translate3d(-6vw, 0, 0);
   }
   .slide.pushing > .wrap {
-    transition: transform 900ms cubic-bezier(0.76, 0, 0.24, 1);
+    transition: transform 1300ms cubic-bezier(0.76, 0, 0.24, 1);
   }
 
   .vwrap {
@@ -327,61 +327,13 @@
     #detail { @apply transition-none; }
   }
 
-  /* About Section */
-  .about-grid {
-    @apply grid gap-4 grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_auto_auto] justify-items-stretch items-center;
-    grid-template-areas:
-      "hd"
-      "ph"
-      "bio"
-      "sm";
-  }
-
-  .about-grid .hd { grid-area: hd; }
-  .about-grid .sm { grid-area: sm; }
-  .about-grid .ph { grid-area: ph; @apply justify-self-center; }
-  .about-grid .bio { grid-area: bio; }
-  .about-grid .dt { grid-area: dt; }
-
-  @media (min-width: 768px) {
-    .about-grid {
-      @apply grid-cols-[0.8fr_1.3fr] grid-rows-[auto_auto] gap-x-18 gap-y-5 content-center;
-      grid-template-areas:
-        "ph dt"
-        "bio dt";
-    }
-    .about-grid .ph { @apply justify-self-start; }
-  }
-
-  .profile-frame {
-    @apply relative w-full max-w-[min(100%,min(50svh,28rem)*0.8)] aspect-[4/5];
-  }
-
-  .profile-frame::before {
-    @apply content-[''] absolute inset-0 -translate-x-[0.7rem] -translate-y-[0.7rem] rounded-[1.4rem] bg-royal;
-    transform: translate(0.7rem, 0.7rem);
-  }
-
-  .profile-frame img {
-    @apply relative block w-full h-full object-cover rounded-[1.4rem] border-[3px] border-ink bg-gray-200;
-  }
-
-  @media (min-width: 768px) {
-    .profile-frame::before {
-      @apply -translate-x-[1.3rem] -translate-y-[1.3rem] rounded-[1.9rem];
-    }
-    .profile-frame img {
-      @apply rounded-[1.9rem];
-    }
-  }
-
   /* Gallery */
   .gallery {
-    @apply relative flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory snap-always scrollbar-hide overscroll-x-contain h-[min(54svh,34rem)];
+    @apply relative flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide overscroll-x-contain h-[min(54svh,34rem)];
   }
 
   .gallery figure {
-    @apply flex-none min-w-0 h-full m-0 snap-start snap-always flex flex-col items-center;
+    @apply flex-none min-w-0 h-full m-0 flex flex-col items-center;
   }
 
   .gallery figure:first-child {
@@ -398,9 +350,6 @@
   }
 
   @media (min-width: 768px) {
-    .gallery {
-      @apply gap-4;
-    }
     .gallery figure {
       @apply flex-[0_0_auto];
     }
@@ -453,6 +402,14 @@
   #dots button:hover span,
   #dots button:focus-visible span {
     @apply opacity-100;
+  }
+
+  /* Titik navigasi di atas slide gelap/biru (body.dk di-set oleh App.tsx) */
+  body.dk #dots i {
+    border-color: #fff !important;
+  }
+  body.dk #dots button[aria-current='true'] i {
+    background-color: #fff !important;
   }
 
   .dark #dots i {
@@ -511,10 +468,6 @@
     .reveal { opacity: 1; transform: none; transition: none; }
     #snap { scroll-behavior: auto; }
   }
-
-  @media (max-width: 767px) {
-    .about-grid .profile-frame { width: 9.4rem; }
-  }
 }
 
 @layer components {
@@ -525,4 +478,24 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* About: infinite marquee ke kiri (sengaja tanpa reduced-motion override agar selalu bergerak) */
+@keyframes about-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.about-marquee-track {
+  animation: about-marquee 30s linear infinite;
+  will-change: transform;
+}
+
+/* Hero: giant running text ke kiri (selalu bergerak, tanpa reduced-motion override) */
+@keyframes hero-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.hero-marquee-track {
+  animation: hero-marquee 45s linear infinite;
+  will-change: transform;
 }

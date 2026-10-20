@@ -28,5 +28,13 @@ export const personalData: PersonalInfo = {
     'Database',
     'Design Patterns',
   ],
+  traits: [
+    'Problem Solver',
+    'Backend Developer',
+    'Clean Code Enthusiast',
+    'Fast Learner',
+    'Team Player',
+    'Always Learning',
+  ],
   profileImage: '/assets/images/profile.webp',
 };

@@ -55,52 +55,155 @@ const goToContact = () => {
   contact.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
 };
 
-export const HeroSection: FC = () => (
-  <section className="slide bg-blue" data-t="Hello" data-dk="1">
-    <div className="wrap">
-      <p className="reveal text-sm sm:text-base font-medium text-white/80">Portfolio 2026</p>
-      <h1 className="reveal dsp mt-3 text-hero-desktop md:text-hero-desktop lg:text-hero-large">
-        {personalData.name.split(' ')[0]}<br />
-        <span className="md:ml-[8vw]">{personalData.name.split(' ').slice(1).join(' ')}</span>
-      </h1>
+/* ---------- Dekorasi: 2 garis lingkaran tipis & minimalis ---------- */
+const OrbitPattern: FC = () => (
+  <svg
+    className="pointer-events-none absolute inset-0 z-0 h-full w-full text-royal"
+    viewBox="0 0 1440 800"
+    preserveAspectRatio="xMidYMid slice"
+    fill="none"
+    aria-hidden="true"
+  >
+    {/* lingkaran besar, berpusat agak ke kanan */}
+    <circle
+      cx="1080"
+      cy="380"
+      r="560"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeOpacity="0.12"
+      vectorEffect="non-scaling-stroke"
+    />
+    {/* lingkaran kedua, lebih kecil di pojok kiri bawah untuk menyeimbangkan komposisi */}
+    <circle
+      cx="120"
+      cy="780"
+      r="300"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeOpacity="0.1"
+      vectorEffect="non-scaling-stroke"
+    />
+  </svg>
+);
 
-      <div className="reveal mt-8 sm:mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-        {/* Kiri: role, tagline, CTA */}
-        <div className="max-w-xl">
-          <p className="text-2xl sm:text-4xl font-bold tracking-tight">
-            {personalData.role}
-          </p>
-          <p className="mt-3 text-lg sm:text-2xl text-white/90">
-            I build backend systems that stay readable as they grow.
-          </p>
-          <button
-            type="button"
-            onClick={goToContact}
-            className="group mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-bold text-deep shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
-          >
-            Let&rsquo;s collaborate
-            <ArrowUpRightIcon className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </button>
-        </div>
+/* ---------- Desktop: giant running text (endless marquee ke kiri) ---------- */
+const MARQUEE_REPEAT = 2; // jumlah salinan nama per belahan; naikkan kalau layar sangat lebar
 
-        {/* Kanan: social links */}
-        <ul className="flex flex-wrap gap-3 md:flex-col md:flex-nowrap">
-          {socialLinks.map(({ label, href, Icon }) => (
-            <li key={label}>
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="flex items-center gap-2.5 rounded-full border-[1.5px] border-white/50 px-4 py-2 text-sm font-medium transition hover:bg-white hover:text-deep md:w-40"
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
+const MarqueeStar: FC = () => (
+  <svg
+    viewBox="0 0 24 24"
+    className="mx-12 h-[0.3em] w-[0.3em] flex-none text-royal"
+    aria-hidden="true"
+  >
+    <path
+      fill="currentColor"
+      d="M12 0l2.2 6.3 5.9-3 -3 5.9L23.4 12l-6.3 2.2 3 5.9 -5.9-3L12 24l-2.2-6.3 -5.9 3 3-5.9L.6 12l6.3-2.2 -3-5.9 5.9 3z"
+    />
+  </svg>
+);
+
+const GiantMarquee: FC<{ text: string }> = ({ text }) => {
+  // satu belahan = nama diulang; dua belahan identik + translateX(-50%) = loop mulus
+  const renderHalf = (key: string) => (
+    <div key={key} className="flex flex-none items-center">
+      {Array.from({ length: MARQUEE_REPEAT }).map((_, i) => {
+        const outline = i % 2 === 1; // selang-seling solid / outline ala editorial
+        return (
+          <div key={`${key}-${i}`} className="flex flex-none items-center">
+            <span
+              className={`dsp font-black uppercase whitespace-nowrap leading-[0.85] tracking-tighter
+                md:text-[9rem] lg:text-[14rem] xl:text-[16vw] 2xl:text-[18vw]
+                ${outline ? 'text-transparent' : 'text-royal'}`}
+              style={outline ? { WebkitTextStroke: '3px #2563EB' } : undefined}
+            >
+              {text}
+            </span>
+            <MarqueeStar />
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 top-1/2 z-10 hidden -translate-y-1/2 overflow-hidden md:block"
+      aria-label={text}
+    >
+      <div className="hero-marquee-track flex w-max items-center" aria-hidden="true">
+        {renderHalf('a')}
+        {renderHalf('b')}
       </div>
     </div>
-  </section>
-);
+  );
+};
+
+/* ---------- Hero ---------- */
+export const HeroSection: FC = () => {
+  const { name, role } = personalData;
+
+  return (
+    <section className="slide bg-light" data-t="Hello">
+      <OrbitPattern />
+      <GiantMarquee text={name} />
+
+      {/* Layer konten (paling atas, bisa diklik) */}
+      <div className="wrap relative z-20 flex h-full flex-col justify-between gap-6 py-16 pr-10 sm:pr-12 md:gap-0 md:py-14 md:pr-0">
+        {/* Kiri atas: label + role */}
+        <div className="reveal">
+          <p className="text-sm font-semibold text-royal sm:text-base">Portfolio 2026</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-deep sm:text-4xl">{role}</p>
+        </div>
+
+        {/* Mobile: nama statis besar, satu kata per baris */}
+        <div className="flex flex-1 items-center md:hidden">
+          <h1
+            className="dsp font-black uppercase leading-[0.9] tracking-tighter text-royal text-[16vw] sm:text-[14vw]"
+            aria-label={name}
+          >
+            {name.split(' ').map((word, i) => (
+              <span key={`${word}-${i}`} className="block" aria-hidden="true">
+                {word}
+              </span>
+            ))}
+          </h1>
+        </div>
+
+        {/* Bawah: tagline (desktop saja) + CTA di kiri, sosial di kanan */}
+        <div className="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
+          <div className="max-w-xl">
+            <p className="hidden text-2xl text-slate-600 md:block">
+              I build backend systems that stay readable as they grow.
+            </p>
+            <button
+              type="button"
+              onClick={goToContact}
+              className="group inline-flex items-center gap-2 rounded-full bg-royal px-6 py-3 text-base font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl md:mt-6"
+            >
+              Let&rsquo;s collaborate
+              <ArrowUpRightIcon className="h-5 w-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </button>
+          </div>
+
+          <ul className="flex flex-wrap gap-2 md:gap-6">
+            {socialLinks.map(({ label, href, Icon }) => (
+              <li key={label}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="flex items-center gap-2.5 rounded-full border-[1.5px] border-royal/40 bg-white/80 px-4 py-2 text-sm font-medium text-deep backdrop-blur-sm transition hover:bg-royal hover:text-white"
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+};
