@@ -7,6 +7,7 @@ import { ExperienceSection } from './components/sections/ExperienceSection';
 import { EventHighlightsSection } from './components/sections/EventHighlightsSection';
 import { ProjectsSection } from './components/sections/ProjectsSection';
 import { ContactSection } from './components/sections/ContactSection';
+import { CtaSection } from './components/sections/CtaSection';
 
 const SLIDE_MS = 1300; // samakan dengan --slide-ms di .slide.floating (CSS)
 const PAGE_MS = 1200; // durasi pindah slide biasa (scroll animasi lewat JS)
@@ -593,6 +594,7 @@ export default function App() {
         <div id="projects">
           <ProjectsSection />
         </div>
+        <CtaSection />
         <ContactSection />
       </main>
     </>

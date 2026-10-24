@@ -13,51 +13,55 @@ interface ModalProps {
 export const Modal: FC<ModalProps> = ({ isOpen, onClose, content, title }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
-  const triggerRef = useRef<HTMLElement>(null);
 
-  const handleClose = (e?: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement> | KeyboardEvent) => {
+  // simpan onClose terbaru di ref supaya effect tidak dijalankan ulang tiap render
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const handleClose = (
+    e?: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>,
+  ) => {
     e?.preventDefault();
     e?.stopPropagation();
-    onClose();
+    // kalau modal membuat history entry, kembalikan dulu (popstate yang menutup modal)
+    if (window.history.state?.modal) {
+      window.history.back();
+    } else {
+      onCloseRef.current();
+    }
   };
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.getElementById('snap')!.setAttribute('inert', 'true');
-      setTimeout(() => backButtonRef.current?.focus({ preventScroll: true }), 60);
-      window.history.pushState({ modal: true }, '');
-    } else {
-      document.body.style.overflow = '';
-      document.getElementById('snap')!.removeAttribute('inert');
-      if (triggerRef.current) {
-        triggerRef.current.focus({ preventScroll: true });
-      }
-    }
+    if (!isOpen) return;
 
-    const handlePopState = () => onClose();
+    const snap = document.getElementById('snap');
+    document.body.style.overflow = 'hidden';
+    snap?.setAttribute('inert', 'true');
+    window.history.pushState({ modal: true }, '');
+    const focusTimer = window.setTimeout(
+      () => backButtonRef.current?.focus({ preventScroll: true }),
+      60,
+    );
+
+    const handlePopState = () => onCloseRef.current();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+      if (e.key === 'Escape') handleClose();
     };
 
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', handleResize);
 
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', handleResize);
+      document.body.style.overflow = '';
+      snap?.removeAttribute('inert');
     };
-  }, [isOpen, onClose]);
-
-  const handleResize = () => {
-    if (window.innerWidth >= 768) {
-      onClose();
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -69,7 +73,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, content, title }) => {
       aria-modal="true"
       aria-hidden="false"
       aria-labelledby="dvtitle"
-      className="fixed inset-0 z-[100] bg-white dark:bg-ink overflow-y-auto overscroll-contain translate-y-full invisible transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] open"
+      className="fixed inset-0 z-[100] bg-white dark:bg-ink overflow-y-auto overscroll-contain transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] open"
       style={{ transform: 'none', visibility: 'visible' }}
       onTouchStart={(e) => e.stopPropagation()}
     >
@@ -79,7 +83,6 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, content, title }) => {
           id="dvback"
           type="button"
           onClick={handleClose}
-          onTouchEnd={handleClose}
           className="btn-back touch-manipulation"
         >
           <svg
@@ -101,7 +104,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, content, title }) => {
           {title}
         </span>
       </header>
-      <div id="dvc" className="modal-body">
+      <div id="dvc" className="modal-body md:max-w-3xl">
         {content}
       </div>
     </div>

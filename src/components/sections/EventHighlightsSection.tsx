@@ -44,23 +44,33 @@ export const EventHighlightsSection: FC = () => {
   }, [updateCarouselState]);
 
   return (
-    <section className="slide bg-blue" data-t="Highlights" data-dk="1">
+    <section className="slide bg-[#2563eb] text-white" data-t="Highlights" data-dk="1">
       <div className="wrap">
-        <div className="reveal flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
-          <h2 className="dsp text-section-mobile sm:text-section-desktop">Event highlights</h2>
-          <p className="text-sm sm:text-base text-white/85 max-w-xs">
-            Activity photos from programs and community events.{' '}
-            <span id="galh" style={{ display: isCarousel ? '' : 'none' }}>
-              Swipe to browse{' '}
-              <b id="galc" className="text-white">
+        {/* Header: label kiri, judul besar kanan */}
+        <div className="reveal mb-6 flex items-start justify-between gap-4 md:mb-10">
+          <div className="flex-none pt-1 font-mono text-[10px] uppercase leading-snug tracking-wider text-white sm:text-xs md:text-sm">
+            <p>[02]</p>
+            <p>Latest Events</p>
+            <p
+              className="mt-2 text-white/80"
+              style={{ display: isCarousel ? '' : 'none' }}
+              id="galh"
+            >
+              <b id="galc" className="font-semibold text-white">
                 {currentIndex + 1} / {eventHighlights.length}
               </b>
-            </span>
-          </p>
+            </p>
+          </div>
+
+          <h2 className="max-w-[13ch] text-right font-display text-2xl font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:max-w-md sm:text-4xl md:max-w-2xl md:text-5xl lg:text-6xl">
+            A collection of memorable events
+          </h2>
         </div>
+
+        {/* Galeri horizontal (class "gallery" dipertahankan agar perilaku scroll bawaan tetap berjalan) */}
         <div
           ref={galleryRef}
-          className="reveal gallery"
+          className="reveal gallery flex h-auto snap-x snap-mandatory gap-6 overflow-x-auto overflow-y-hidden scrollbar-hide"
           tabIndex={0}
           aria-label="Event photos"
           onScroll={() => {
@@ -77,18 +87,20 @@ export const EventHighlightsSection: FC = () => {
               ref={(el) => {
                 figuresRef.current[idx] = el!;
               }}
+              className="m-0 flex h-auto w-[260px] flex-shrink-0 snap-start flex-col items-stretch !ml-0 !mr-0 sm:w-[300px] lg:w-[380px]"
             >
               <img
                 src={event.image}
                 alt={event.title}
+                className="aspect-square !h-auto !w-full !max-w-none !rounded-none !border-0 object-cover !shadow-none"
                 onLoad={updateCarouselState}
                 onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/800x600/2563EB/FFFFFF?text=Event';
+                  e.currentTarget.src = 'https://via.placeholder.com/800x800/1d4ed8/FFFFFF?text=Event';
                 }}
               />
-              <figcaption>
-                <b>{event.title}</b>
-                {event.date}
+              <figcaption className="mt-2 flex items-center justify-between gap-3 text-left font-mono text-xs uppercase tracking-wider text-white md:text-sm">
+                <span className="truncate font-semibold">{event.title}</span>
+                <span className="flex-none text-white/80">{event.date}</span>
               </figcaption>
             </figure>
           ))}

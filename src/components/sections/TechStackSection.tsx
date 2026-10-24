@@ -9,12 +9,11 @@ interface TechItem {
 const techIcons = {
   Go: 'https://cdn.simpleicons.org/go/00ADD8',
   NestJS: 'https://cdn.simpleicons.org/nestjs/E0234E',
-  Redis: 'https://cdn.simpleicons.org/redis/DC382D',
+
+  Redis: 'https://www.svgrepo.com/show/303460/redis-logo.svg',
+
   Docker: 'https://cdn.simpleicons.org/docker/2496ED',
-  GORM: `<svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="11" fill="#00ADD8"/>
-    <text x="12" y="17" text-anchor="middle" font-size="14" font-weight="800" fill="#fff" font-family="Arial,sans-serif">G</text>
-  </svg>`,
+
   TypeScript: 'https://cdn.simpleicons.org/typescript/3178C6',
   PostgreSQL: 'https://cdn.simpleicons.org/postgresql/4169E1',
   Prisma: 'https://cdn.simpleicons.org/prisma/2D3748',
@@ -27,7 +26,6 @@ const col1Items: TechItem[] = [
   { name: 'NestJS', icon: techIcons.NestJS, role: 'Modular API Framework' },
   { name: 'Redis', icon: techIcons.Redis, role: 'In-Memory Caching & Rate Limit' },
   { name: 'Docker', icon: techIcons.Docker, role: 'Containerized Local Services' },
-  { name: 'GORM', icon: techIcons.GORM, role: 'Go ORM for PostgreSQL' },
 ];
 
 const col2Items: TechItem[] = [
@@ -38,28 +36,38 @@ const col2Items: TechItem[] = [
   { name: 'Tailwind CSS', icon: techIcons['Tailwind CSS'], role: 'Utility-First Styling' },
 ];
 
-const TechCard: FC<{ item: TechItem }> = ({ item }) => (
-  <article className="tech-card">
-    <div className="icon" dangerouslySetInnerHTML={{ __html: item.icon.startsWith('<svg') ? item.icon : `<img src="${item.icon}" alt="" width="28" height="28">` }} />
-    <h3 className="dsp mt-3 text-lg sm:text-xl tracking-tight leading-snug">
-      {item.name}
-    </h3>
-    <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">{item.role}</p>
-  </article>
-);
+const TechCard: FC<{ item: TechItem }> = ({ item }) => {
+  const isSvgString = item.icon.startsWith('<svg');
+
+  return (
+    <article className="tech-card">
+      <div className="icon">
+        {isSvgString ? (
+          <div dangerouslySetInnerHTML={{ __html: item.icon }} />
+        ) : (
+          <img src={item.icon} alt={item.name} width="28" height="28" className="w-7 h-7 object-contain" />
+        )}
+      </div>
+      <h3 className="dsp mt-3 text-lg sm:text-xl tracking-tight leading-snug">
+        {item.name}
+      </h3>
+      <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">{item.role}</p>
+    </article>
+  );
+};
 
 export const TechStackSection: FC = () => (
   <section className="slide bg-light" data-t="Tech stack">
     <div className="wrap h-full grid gap-3 md:grid-cols-[1fr_1fr] md:gap-14 items-center grid-rows-[auto_1fr] md:grid-rows-1 pt-5 md:pt-0">
       <div className="reveal">
         <h2 className="dsp text-display-sm sm:text-display-lg leading-tight">
-          Powered by Modern Backend & Systems Tech
+          TOOLS & TECH I WORK WITH DAILY
         </h2>
         <p className="mt-3 text-sm sm:text-lg text-slate-600 dark:text-slate-400 max-w-md">
-          Teknologi dan tools yang saya gunakan untuk membangun sistem backend yang andal, efisien, dan maintainable.
+          A curated stack I use to build clean backend systems, handle data efficiently, and create responsive web applications.
         </p>
         <p className="mt-3 hidden sm:block text-xs text-slate-500 dark:text-slate-500 max-w-md">
-          Also: JavaScript, Python, SQL, Git, React Router, Zustand, TanStack Query, Layered Architecture, Modular Monolith, Goroutines. Exploring Microservices and gRPC.
+          Also familiar with: JavaScript, Python, SQL, Git, React Router, Zustand, TanStack Query, Layered Architecture, Modular Monolith, Goroutines, Microservices & gRPC.
         </p>
       </div>
       <div className="vwrap h-full grid grid-cols-2 gap-3 sm:gap-4 min-h-0" aria-label="Tech stack">

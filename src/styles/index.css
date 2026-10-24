@@ -319,10 +319,6 @@
     @apply grid place-items-center min-h-[9rem] border-2 border-dashed border-gray-300 rounded-[1.25rem] text-gray-500 text-sm;
   }
 
-  @media (min-width: 768px) {
-    #detail { @apply hidden; }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     #detail { @apply transition-none; }
   }
