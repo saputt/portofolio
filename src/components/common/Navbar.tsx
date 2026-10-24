@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FC } from 'react';
-import { projectsData } from '../../data/projectsData';
 
 interface NavDotProps {
   label: string;
@@ -10,6 +9,7 @@ interface NavDotProps {
 
 const NavDot: FC<NavDotProps> = ({ label, isActive, onClick }) => (
   <button
+    type="button"
     onClick={onClick}
     aria-label={`Go to ${label}`}
     aria-current={isActive ? 'true' : 'false'}
@@ -29,21 +29,36 @@ export const Navbar: FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [slides, setSlides] = useState<HTMLElement[]>([]);
 
+  const activeRef = useRef(0); // posisi aktif terbaru (dipakai di callback)
+  const targetRef = useRef<number | null>(null); // slide tujuan saat navigasi lewat klik
+  const targetTimer = useRef(0);
+
   useEffect(() => {
     const snap = document.getElementById('snap');
-    const slideElements = Array.from(document.querySelectorAll('.slide')) as HTMLElement[];
+    // Daftar slide diambil langsung dari DOM, jadi otomatis cocok kalau ada section baru/dihapus
+    const slideElements = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
     setSlides(slideElements);
 
     if (!snap) return;
 
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const index = slideElements.indexOf(entry.target as HTMLElement);
-          if (index !== -1) {
-            setActiveIndex(index);
+        if (!entry.isIntersecting) return;
+        const index = slideElements.indexOf(entry.target as HTMLElement);
+        if (index === -1) return;
+
+        // Sedang menuju slide tujuan hasil klik: abaikan slide yang cuma "dilewati"
+        if (targetRef.current !== null) {
+          if (index === targetRef.current) {
+            targetRef.current = null;
+            window.clearTimeout(targetTimer.current);
+          } else {
+            return;
           }
         }
+
+        activeRef.current = index;
+        setActiveIndex(index);
       });
     };
 
@@ -55,28 +70,36 @@ export const Navbar: FC = () => {
     slideElements.forEach((slide) => observer.observe(slide));
 
     return () => {
-      slideElements.forEach((slide) => observer.unobserve(slide));
+      observer.disconnect();
+      window.clearTimeout(targetTimer.current);
     };
   }, []);
 
-  const scrollToSlide = (index: number) => {
-    const targetSlide = slides[index];
-    if (targetSlide) {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      targetSlide.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-    }
-  };
+  const scrollToSlide = useCallback(
+    (index: number) => {
+      const targetSlide = slides[index];
+      if (!targetSlide) return;
 
-  const sectionLabels = [
-    'Hello',
-    'About',
-    'Tech stack',
-    'Unikom Codelabs',
-    'COMPFEST 18',
-    'Highlights',
-    ...projectsData.map((p) => p.title),
-    'Contact',
-  ];
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const distance = Math.abs(index - activeRef.current);
+
+      // Titik langsung pindah ke tujuan, tidak loncat-loncat mengikuti slide yang dilewati
+      targetRef.current = index;
+      activeRef.current = index;
+      setActiveIndex(index);
+
+      // Lepas kunci kalau observer tidak sempat melapor (mis. scroll terputus)
+      window.clearTimeout(targetTimer.current);
+      targetTimer.current = window.setTimeout(() => {
+        targetRef.current = null;
+      }, 1600);
+
+      // Slide bersebelahan: smooth. Lompatan jauh: langsung, supaya tidak menyapu semua slide di antaranya
+      const behavior: ScrollBehavior = reduce || distance > 1 ? ('instant' as ScrollBehavior) : 'smooth';
+      targetSlide.scrollIntoView({ behavior });
+    },
+    [slides],
+  );
 
   return (
     <nav
@@ -84,14 +107,17 @@ export const Navbar: FC = () => {
       aria-label="Sections"
       className="fixed right-[max(0.5rem,env(safe-area-inset-right))] top-1/2 -translate-y-1/2 z-50 flex flex-col gap-1.5"
     >
-      {sectionLabels.map((label, index) => (
-        <NavDot
-          key={label}
-          label={label}
-          isActive={activeIndex === index}
-          onClick={() => scrollToSlide(index)}
-        />
-      ))}
+      {slides.map((slide, index) => {
+        const label = slide.dataset.t || `Section ${index + 1}`;
+        return (
+          <NavDot
+            key={`${label}-${index}`}
+            label={label}
+            isActive={activeIndex === index}
+            onClick={() => scrollToSlide(index)}
+          />
+        );
+      })}
     </nav>
   );
 };

@@ -67,10 +67,12 @@ export const EventHighlightsSection: FC = () => {
           </h2>
         </div>
 
-        {/* Galeri horizontal (class "gallery" dipertahankan agar perilaku scroll bawaan tetap berjalan) */}
+        {/* Galeri horizontal.
+            Class "gallery" dipertahankan: App.tsx menggeser foto lewat JS saat user scroll/swipe vertikal.
+            JANGAN pakai scroll-snap di sini, karena akan melawan geseran dari JS. */}
         <div
           ref={galleryRef}
-          className="reveal gallery flex h-auto snap-x snap-mandatory gap-6 overflow-x-auto overflow-y-hidden scrollbar-hide"
+          className="reveal gallery flex h-auto gap-6 overflow-x-auto overflow-y-hidden scrollbar-hide"
           tabIndex={0}
           aria-label="Event photos"
           onScroll={() => {
@@ -87,7 +89,7 @@ export const EventHighlightsSection: FC = () => {
               ref={(el) => {
                 figuresRef.current[idx] = el!;
               }}
-              className="m-0 flex h-auto w-[260px] flex-shrink-0 snap-start flex-col items-stretch !ml-0 !mr-0 sm:w-[300px] lg:w-[380px]"
+              className="m-0 flex h-auto w-[260px] flex-shrink-0 flex-col items-stretch !ml-0 !mr-0 sm:w-[300px] lg:w-[380px]"
             >
               <img
                 src={event.image}

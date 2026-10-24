@@ -444,15 +444,21 @@ export default function App() {
       run(i);
     };
 
-    let startX = 0;
+        let startX = 0;
     let startY = 0;
     let lastY = 0;
-    let touchUsedGallery = false; // gesture ini sudah menggeser galeri: jangan pindah section di ujungnya
+    let touchUsedGallery = false; // gesture ini sudah menggeser galeri
+    let overscroll = 0; // seberapa jauh jari masih lanjut setelah galeri mentok
+    let overscrollFired = false;
+    const OVERSCROLL_TRIGGER = 70; // px dorongan lanjutan sebelum pindah section
+
     const onTouchStart = (e: TouchEvent) => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       lastY = startY;
       touchUsedGallery = false;
+      overscroll = 0;
+      overscrollFired = false;
       lastInput.current = Date.now();
     };
     const onTouchMove = (e: TouchEvent) => {
@@ -461,14 +467,26 @@ export default function App() {
       const dy = y - startY;
       lastInput.current = Date.now();
       if (Math.abs(dy) < 6 || Math.abs(dx) > Math.abs(dy)) return;
-      const i = intent(dy < 0);
+      const down = dy < 0; // jari bergerak ke atas = scroll ke bawah
+      const i = intent(down);
       if (!i) return;
       if (e.cancelable) e.preventDefault();
+
       if (i === 'gallery') {
         const g = gallery();
         if (g) {
           touchUsedGallery = true;
+          overscroll = 0;
           galleryJump(g, (lastY - y) * 1.4); // geser jari ke atas = foto bergeser ke kiri
+        }
+      } else if (touchUsedGallery && !overscrollFired && Date.now() >= lockUntil.current) {
+        // Galeri sudah mentok tapi jari masih terus bergerak di gesture yang sama:
+        // lanjutkan ke section berikutnya/sebelumnya tanpa perlu angkat jari.
+        const step = down ? lastY - y : y - lastY;
+        overscroll = Math.max(0, overscroll + step);
+        if (overscroll > OVERSCROLL_TRIGGER) {
+          overscrollFired = true;
+          run(down ? 'pageDown' : 'close');
         }
       }
       lastY = y;
