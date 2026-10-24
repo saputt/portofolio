@@ -10,9 +10,8 @@ export const personalData: PersonalInfo = {
     phone: '+62 896-5531-2823',
     location: 'Bandung, Indonesia',
     github: 'https://github.com/saputt',
-    // TODO: ganti USERNAME dengan username asli kamu
-    linkedin: 'https://www.linkedin.com/in/USERNAME',
-    instagram: 'https://www.instagram.com/USERNAME',
+    linkedin: 'https://www.linkedin.com/in/sauki-putra',
+    instagram: 'https://www.instagram.com/saukiraff',
   },
   education: {
     institution: 'Universitas Komputer Indonesia',

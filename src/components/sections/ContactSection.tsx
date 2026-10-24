@@ -5,9 +5,6 @@ export const ContactSection: FC = () => (
   <section className="slide bg-blue" data-t="Contact" data-dk="1">
     <div className="wrap text-center">
       <h2 className="reveal dsp text-section-mobile sm:text-section-desktop lg:text-section-large">Let&rsquo;s connect.</h2>
-      <p className="reveal mt-4 text-lg sm:text-xl mx-auto max-w-md">
-        Open to backend internships and collaboration.
-      </p>
       <ul className="reveal mt-8 sm:mt-10 mx-auto max-w-xl text-xl sm:text-3xl font-bold font-display tracking-tight">
         <li className="line py-4">
           <span className="block text-sm font-medium text-white/75 tracking-normal">
